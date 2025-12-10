@@ -7,7 +7,7 @@
 with source as (
     select *
     from read_parquet(
-        '/home/msol/examen_vidal_padilla/examen_ing_de_sw_n_data_final_PADILLA_VIDAL/data/clean/transactions_20251201_clean.parquet'
+        '/home/marco/examen_ing_de_sw_n_data_final_PADILLA_VIDAL/examen_ing_de_sw_n_data_final_PADILLA_VIDAL/data/clean/transactions_20251201_clean.parquet'
     )
 )
 

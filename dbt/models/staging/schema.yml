@@ -1,3 +1,5 @@
+# depends_on: {{ ref('stg_transactions') }}
+
 version: 2
 
 models:

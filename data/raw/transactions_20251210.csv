@@ -1,0 +1,3 @@
+transaction_id,customer_id,amount,status,transaction_ts
+1,1001,250.50 ,completed,2025-12-10 02:10:00
+2,1002,99.99,Completed,2025-12-10 03:45:00
