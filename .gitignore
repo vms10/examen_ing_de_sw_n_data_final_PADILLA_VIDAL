@@ -1,1 +1,39 @@
+# --- Airflow runtime files ---
+airflow_home/
+airflow_home/*
+
+# Excluir base de datos SQLite de Airflow
+airflow.db
+airflow.db-shm
+airflow.db-wal
+
+# Excluir logs de Airflow (scheduler, processor, task logs)
+logs/
+DAGS_FOLDER/logs/
+*/logs/
+
+# --- Python environment ---
 .venv/
+venv/
+ENV/
+env/
+
+# --- Python cache ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# --- DBT artifacts ---
+dbt/target/
+dbt/dbt_packages/
+
+# --- DuckDB warehouse ---
+warehouse/*.duckdb
+warehouse/*.wal
+warehouse/*.shm
+
+# --- OS / editor clutter ---
+.DS_Store
+*.swp
+*.swo
