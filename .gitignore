@@ -30,14 +30,14 @@ dbt/logs/
 dbt/dbt_packages/
 
 # --- DuckDB warehouse ---
-warehouse/*.duckdb
-warehouse/*.wal
-warehouse/*.shm
+warehouse/
+!warehouse/.gitkeep  # permitir archivo de estructura
 
 # --- Data (artifacts) ---
-data/quality/
 data/raw/
 data/clean/
+data/quality/
+!data/quality/.gitkeep  # permitir archivo de estructura
 
 # --- OS / editor clutter ---
 .DS_Store
