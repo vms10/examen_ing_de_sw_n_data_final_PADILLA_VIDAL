@@ -7,7 +7,7 @@ airflow.db
 airflow.db-shm
 airflow.db-wal
 
-# Excluir logs de Airflow (scheduler, processor, task logs)
+# Excluir logs de Airflow
 logs/
 DAGS_FOLDER/logs/
 */logs/
@@ -19,19 +19,25 @@ ENV/
 env/
 
 # --- Python cache ---
-__pycache__/
+**/__pycache__/
 *.pyc
 *.pyo
 *.pyd
 
 # --- DBT artifacts ---
 dbt/target/
+dbt/logs/
 dbt/dbt_packages/
 
 # --- DuckDB warehouse ---
 warehouse/*.duckdb
 warehouse/*.wal
 warehouse/*.shm
+
+# --- Data (artifacts) ---
+data/quality/
+data/raw/
+data/clean/
 
 # --- OS / editor clutter ---
 .DS_Store
