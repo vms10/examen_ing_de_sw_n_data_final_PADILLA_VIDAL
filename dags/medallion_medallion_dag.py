@@ -63,25 +63,9 @@ def _run_dbt_command(command: str, ds_nodash: str) -> subprocess.CompletedProces
 # ---------------------------------------------------------------------
 # BRONZE TASK — CLEAN RAW CSV
 # ---------------------------------------------------------------------
-
-# def bronze_task(ds_nodash: str):
-#     """
-#     Bronze step: read the raw CSV for the execution date, clean it
-#     using clean_daily_transactions, and save parquet in CLEAN_DIR.
-#     """
-#     raw_file = RAW_DIR / f"transactions_{ds_nodash}.csv"
-#     if not raw_file.exists():
-#         raise AirflowException(f"Raw file not found: {raw_file}")
-
-#     out_file = CLEAN_DIR / f"transactions_{ds_nodash}_clean.parquet"
-#     CLEAN_DIR.mkdir(exist_ok=True, parents=True)
-
-#     clean_daily_transactions(str(raw_file), str(out_file))
-
-#     return f"Bronze OK → {out_file}"
-
-
 def bronze_task(ds, ds_nodash, **context):
+    """ Paso Bronce: Limpia los archivos CSV sin procesar y genera archivos CSV limpios. """
+
     execution_date = context["logical_date"].date()
 
     clean_daily_transactions(
@@ -95,9 +79,9 @@ def bronze_task(ds, ds_nodash, **context):
 # ---------------------------------------------------------------------
 # SILVER TASK — DBT RUN
 # ---------------------------------------------------------------------
-
 def silver_task(ds_nodash: str):
-    """Silver step: run dbt run."""
+    """ Paso plata: ejecuta dbt run para cargar datos limpios en el almacén de datos."""
+
     result = _run_dbt_command("run", ds_nodash)
 
     if result.returncode != 0:
@@ -111,9 +95,9 @@ def silver_task(ds_nodash: str):
 # ---------------------------------------------------------------------
 # GOLD TASK — DBT TEST + QUALITY FILE
 # ---------------------------------------------------------------------
-
 def gold_task(ds_nodash: str):
-    """Gold step: dbt test + generate dq_results_<ds>.json."""
+    """ Paso oro: ejecuta dbt test + generar dq_results_<ds>.json."""
+
     result = _run_dbt_command("test", ds_nodash)
 
     QUALITY_DIR.mkdir(exist_ok=True, parents=True)
@@ -145,7 +129,8 @@ def gold_task(ds_nodash: str):
 # ---------------------------------------------------------------------
 
 def build_dag() -> DAG:
-    """Construct the medallion pipeline DAG with bronze/silver/gold tasks."""
+    """Construye el DAG con las tareas de bronce/plata/oro."""
+
     with DAG(
         description="Bronze/Silver/Gold medallion demo with pandas, dbt, and DuckDB",
         dag_id="medallion_pipeline",
@@ -154,19 +139,12 @@ def build_dag() -> DAG:
         catchup=True,
         max_active_runs=1,
     ) as medallion_dag:
-        
-        # bronze = PythonOperator(
-        #     task_id="bronze_clean",
-        #     python_callable=bronze_task,
-        #     op_kwargs={"ds_nodash": "{{ ds_nodash }}"},
-        # )
 
         bronze = PythonOperator(
             task_id="bronze_clean",
             python_callable=bronze_task,
             op_kwargs={},
         )
-
 
         silver = PythonOperator(
             task_id="silver_dbt_run",
@@ -180,6 +158,7 @@ def build_dag() -> DAG:
             op_kwargs={"ds_nodash": "{{ ds_nodash }}"},
         )
 
+        """ Acá se definen las dependencias entre las tareas """
         bronze >> silver >> gold
     
     # pass
