@@ -1,7 +1,6 @@
 {% test non_negative(model, column_name) %}
 
--- TODO: Implementar el test para verificar que los valores en la columna son no negativos y no nulos.
-
+-- Este test debería devolver filas si encuentra valores negativos o nulos en la columna especificada.
 select
     {{ column_name }}
 from {{ model }}

@@ -27,6 +27,8 @@ DBT_DIR = BASE_DIR / "dbt"
 PROFILES_DIR = BASE_DIR / "profiles"
 WAREHOUSE_PATH = BASE_DIR / "warehouse/medallion.duckdb"
 
+LOCAL_TZ = pendulum.timezone("America/Argentina/Buenos_Aires")
+
 
 def _build_env(ds_nodash: str) -> dict[str, str]:
     """Build environment variables needed by dbt commands."""
@@ -63,10 +65,10 @@ def _run_dbt_command(command: str, ds_nodash: str) -> subprocess.CompletedProces
 # ---------------------------------------------------------------------
 # BRONZE TASK — CLEAN RAW CSV
 # ---------------------------------------------------------------------
-def bronze_task(ds, ds_nodash, **context):
-    """ Paso Bronce: Limpia los archivos CSV sin procesar y genera archivos CSV limpios. """
+def bronze_task(ds_nodash, **context):
+    """Paso Bronce: Limpia los archivos CSV sin procesar y genera archivos CSV limpios."""
 
-    execution_date = context["logical_date"].date()
+    execution_date = datetime.strptime(ds_nodash, "%Y%m%d").date()
 
     clean_daily_transactions(
         execution_date=execution_date,
@@ -75,12 +77,11 @@ def bronze_task(ds, ds_nodash, **context):
     )
 
 
-
 # ---------------------------------------------------------------------
 # SILVER TASK — DBT RUN
 # ---------------------------------------------------------------------
 def silver_task(ds_nodash: str):
-    """ Paso plata: ejecuta dbt run para cargar datos limpios en el almacén de datos."""
+    """Paso plata: ejecuta dbt run para cargar datos limpios en el almacén de datos."""
 
     result = _run_dbt_command("run", ds_nodash)
 
@@ -96,7 +97,7 @@ def silver_task(ds_nodash: str):
 # GOLD TASK — DBT TEST + QUALITY FILE
 # ---------------------------------------------------------------------
 def gold_task(ds_nodash: str):
-    """ Paso oro: ejecuta dbt test + generar dq_results_<ds>.json."""
+    """Paso oro: ejecuta dbt test + generar dq_results_<ds>.json."""
 
     result = _run_dbt_command("test", ds_nodash)
 
@@ -128,6 +129,7 @@ def gold_task(ds_nodash: str):
 # DAG DEFINITION
 # ---------------------------------------------------------------------
 
+
 def build_dag() -> DAG:
     """Construye el DAG con las tareas de bronce/plata/oro."""
 
@@ -143,7 +145,8 @@ def build_dag() -> DAG:
         bronze = PythonOperator(
             task_id="bronze_clean",
             python_callable=bronze_task,
-            op_kwargs={},
+            # op_kwargs={},
+            op_kwargs={"ds_nodash": "{{ ds_nodash }}"},
         )
 
         silver = PythonOperator(
@@ -160,8 +163,9 @@ def build_dag() -> DAG:
 
         """ Acá se definen las dependencias entre las tareas """
         bronze >> silver >> gold
-    
+
     # pass
     return medallion_dag
-    
+
+
 dag = build_dag()

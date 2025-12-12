@@ -18,6 +18,8 @@ models:
         tests:
           - not_null
           - non_negative
+          - not_greater_than:
+              other_column: total_amount_all 
       - name: total_amount_all
         description: "Sum of all transaction amounts."
         tests:
