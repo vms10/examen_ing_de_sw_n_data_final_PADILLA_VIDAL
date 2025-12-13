@@ -13,7 +13,7 @@ Este proyecto crea un pipeline de 3 pasos que replica la arquitectura medallion:
 │   └── medallion_medallion_dag.py
 ├── data/
 │   ├── raw/
-│   │   └── transactions_20251205.csv
+│   │   └── transactions_20251201.csv
 │   ├── clean/
 │   └── quality/
 ├── dbt/
@@ -21,7 +21,7 @@ Este proyecto crea un pipeline de 3 pasos que replica la arquitectura medallion:
 │   ├── models/
 │   │   ├── staging/
 │   │   └── marts/
-│   └── tests/
+│   └── tests/generic/
 ├── include/
 │   └── transformations.py
 ├── profiles/
@@ -46,7 +46,7 @@ pip install -r requirements.txt
 ```
 
 ## Configuración de variables de entorno
-
+Correr esto en la terminal cada vez que se levante Airflow 
 ```bash
 export AIRFLOW_HOME=$(pwd)/airflow_home
 export DBT_PROFILES_DIR=$(pwd)/profiles
@@ -66,18 +66,20 @@ En el output de `airflow standalone` buscar la contraseña para loguearse. Ej:
 standalone | Airflow is ready
 standalone | Login with username: admin  password: pPr9XXxFzgrgGd6U
 ```
+De no encontrarlo lo podes ver en `cat airflow_home/simple_auth_manager_passwords.json.generated`
 
+De ahi podes entrar a la UI en http://localhost:8080/
 
-## Ejecutar el DAG
+## Ejecutar el DAG - Trigger manual con Advanced options 
 
-1. Coloca/actualiza el archivo `data/raw/transactions_YYYYMMDD.csv`.
+1. Vamos a usar como data el archivo `data/raw/transactions_20251201.csv`.
 
+3. Desde la UI disparamos el DAG usando la fecha deseada, en este caso "2025-12-01".
 
-3. Desde la UI o CLI dispara el DAG usando la fecha deseada:
+Para eso usamos la opcion de "Advanced Options" para elegir la fecha para la cual tenemos el csv. De nuestra experiencia ademas del dia, es importante tambien la hora. Aconsejamos ejecutarlo con hora 9AM (nos fallaba con horas como 21hs). A continuacion se muestra en un print como hicimos eso
 
-```bash
-airflow dags trigger medallion_pipeline --run-id manual_$(date +%s)
-```
+<img width="1112" height="495" alt="image" src="https://github.com/user-attachments/assets/d2532476-439f-41d0-a770-8cfcd70f1fc8" />
+
 
 El DAG ejecutará:
 
@@ -85,38 +87,28 @@ El DAG ejecutará:
 - `silver_dbt_run`: ejecuta `dbt run` apuntando al proyecto `dbt/` y carga la data en DuckDB.
 - `gold_dbt_tests`: corre `dbt test` y escribe `data/quality/dq_results_<ds>.json` con el status (`passed`/`failed`).
 
-Si un test falla, el archivo igual se genera y el task termina en error para facilitar el monitoreo.
+Luego de haber:
+- Implementado tareas de Airflow (dags/medallion_medallion_dag.py).
+- Implementado modelos de dbt según cada archivo schema.yml (dbt/models completamos los schemas.yml tanto de /staging y /marts)
 
-## Ejecutar dbt manualmente
+Logramos ejecutar con éxito las 3 tareas. A continuacion mostramos los logs de un run en airflow donde podemos ver que terminaron en success.
 
-```bash
-cd dbt
-dbt run
-DBT_PROFILES_DIR=../profiles dbt test
-```
+# Bronze
+<img width="1822" height="552" alt="image" src="https://github.com/user-attachments/assets/aec5d609-4606-489e-b10f-de2b90264a2c" />
 
-Asegúrate de exportar `CLEAN_DIR`, `DS_NODASH` y `DUCKDB_PATH` si necesitas sobreescribir valores por defecto:
+# Silver
+<img width="1825" height="592" alt="image" src="https://github.com/user-attachments/assets/dedf38a2-5197-4663-8496-936176edd06d" />
 
-```bash
-export CLEAN_DIR=$(pwd)/../data/clean
-export DS_NODASH=20251205
-export DUCKDB_PATH=$(pwd)/../warehouse/medallion.duckdb
-```
+# Gold
+<img width="1823" height="537" alt="image" src="https://github.com/user-attachments/assets/4e2f762c-76ae-40eb-b37a-f404c298b7b5" />
 
-## Observabilidad de Data Quality
+# Inspeccionar 
 
-Cada corrida crea `data/quality/dq_results_<ds>.json` similar a:
 
-```json
-{
-  "ds_nodash": "20251205",
-  "status": "passed",
-  "stdout": "...",
-  "stderr": ""
-}
-```
 
-Ese archivo puede ser ingerido por otras herramientas para auditoría o alertas.
+
+
+
 
 
 ## Verificación de resultados por capa
@@ -127,6 +119,10 @@ Ese archivo puede ser ingerido por otras herramientas para auditoría o alertas.
     $ find data/clean/ | grep transactions_*
     data/clean/transactions_20251201_clean.parquet
     ```
+Mostramos resultados exitosos:
+<img width="1271" height="60" alt="image" src="https://github.com/user-attachments/assets/19af37ad-86e5-4a17-9d70-845ecf56ddc1" />
+
+
 2. Inspecciona las primeras filas para confirmar la limpieza aplicada:
     ```bash
     duckdb -c "
@@ -135,12 +131,18 @@ Ese archivo puede ser ingerido por otras herramientas para auditoría o alertas.
       LIMIT 5;
     "
     ```
+Mostramos resultados exitosos:
+<img width="1110" height="337" alt="image" src="https://github.com/user-attachments/assets/cf934623-f018-4f12-b413-3ada37b02920" />
 
 ### Silver
 1. Abre el warehouse y lista las tablas creadas por dbt:
     ```bash
     duckdb warehouse/medallion.duckdb -c ".tables"
     ```
+  Mostramos resultados exitosos:
+<img width="1370" height="57" alt="image" src="https://github.com/user-attachments/assets/b7bb2d0f-57a2-46ee-8b78-cc92edf280a9" />
+
+
 2. Ejecuta consultas puntuales para validar cálculos intermedios:
     ```bash
     duckdb warehouse/medallion.duckdb -c "
@@ -149,6 +151,9 @@ Ese archivo puede ser ingerido por otras herramientas para auditoría o alertas.
       LIMIT 10;
     "
     ```
+Mostramos resultados exitosos:
+<img width="1296" height="313" alt="image" src="https://github.com/user-attachments/assets/f7b5c54c-f493-4c79-8782-b4fc9c560528" />
+
 
 ### Gold
 1. Revisa que exista el parquet más reciente:
@@ -157,11 +162,14 @@ Ese archivo puede ser ingerido por otras herramientas para auditoría o alertas.
     data/quality/dq_results_20251201.json
     ```
 
+<img width="1167" height="60" alt="image" src="https://github.com/user-attachments/assets/0dcfa875-b8d4-48f4-9d5c-ea50e58b0b18" />
 2. Confirma la generación del archivo de data quality:
+
     ```bash
     cat data/quality/dq_results_20251201.json | jq
     ```
 
+<img width="1313" height="912" alt="image" src="https://github.com/user-attachments/assets/3ab63ff4-ec0d-4696-a15f-480758180ff0" />
 3. En caso de fallos, inspecciona `stderr` dentro del mismo JSON o revisa los logs del task en la UI/CLI de Airflow para identificar la prueba que reportó error.
 
 
@@ -208,29 +216,9 @@ Necesarios para completar el workflow:
 Nice to hace:
 - [ ] Manejar el caso que no haya archivos para el dia indicado.
 
-# Advanced options
-<img width="1112" height="495" alt="image" src="https://github.com/user-attachments/assets/d2532476-439f-41d0-a770-8cfcd70f1fc8" />
 
 
-# Bronze
-<img width="1822" height="552" alt="image" src="https://github.com/user-attachments/assets/aec5d609-4606-489e-b10f-de2b90264a2c" />
 
-# Silver
-<img width="1825" height="592" alt="image" src="https://github.com/user-attachments/assets/dedf38a2-5197-4663-8496-936176edd06d" />
-
-# Gold
-<img width="1823" height="537" alt="image" src="https://github.com/user-attachments/assets/4e2f762c-76ae-40eb-b37a-f404c298b7b5" />
-
-# Inspeccionar 
-<img width="1271" height="60" alt="image" src="https://github.com/user-attachments/assets/19af37ad-86e5-4a17-9d70-845ecf56ddc1" />
-
-<img width="1110" height="337" alt="image" src="https://github.com/user-attachments/assets/cf934623-f018-4f12-b413-3ada37b02920" />
-
-<img width="1296" height="313" alt="image" src="https://github.com/user-attachments/assets/f7b5c54c-f493-4c79-8782-b4fc9c560528" />
-
-<img width="1167" height="60" alt="image" src="https://github.com/user-attachments/assets/0dcfa875-b8d4-48f4-9d5c-ea50e58b0b18" />
-
-<img width="1313" height="912" alt="image" src="https://github.com/user-attachments/assets/3ab63ff4-ec0d-4696-a15f-480758180ff0" />
 
 
 # Formateo
