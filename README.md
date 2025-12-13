@@ -233,6 +233,11 @@ Nice to hace:
 <img width="1313" height="912" alt="image" src="https://github.com/user-attachments/assets/3ab63ff4-ec0d-4696-a15f-480758180ff0" />
 
 
+# Formateo
+<img width="1277" height="417" alt="image" src="https://github.com/user-attachments/assets/d0c99a5c-cd94-4263-8610-0d4ea8041bad" />
+
+
+
 
 
 
