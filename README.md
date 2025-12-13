@@ -207,3 +207,37 @@ Necesarios para completar el workflow:
 - [ ] Documentar mejoras posibles para el proceso considerado aspectos de escalabilidad y modelado de datos.
 Nice to hace:
 - [ ] Manejar el caso que no haya archivos para el dia indicado.
+
+# Advanced options
+<img width="1112" height="495" alt="image" src="https://github.com/user-attachments/assets/d2532476-439f-41d0-a770-8cfcd70f1fc8" />
+
+
+# Bronze
+<img width="1822" height="552" alt="image" src="https://github.com/user-attachments/assets/aec5d609-4606-489e-b10f-de2b90264a2c" />
+
+# Silver
+<img width="1825" height="592" alt="image" src="https://github.com/user-attachments/assets/dedf38a2-5197-4663-8496-936176edd06d" />
+
+# Gold
+<img width="1823" height="537" alt="image" src="https://github.com/user-attachments/assets/4e2f762c-76ae-40eb-b37a-f404c298b7b5" />
+
+# Inspeccionar 
+<img width="1271" height="60" alt="image" src="https://github.com/user-attachments/assets/19af37ad-86e5-4a17-9d70-845ecf56ddc1" />
+
+<img width="1110" height="337" alt="image" src="https://github.com/user-attachments/assets/cf934623-f018-4f12-b413-3ada37b02920" />
+
+<img width="1296" height="313" alt="image" src="https://github.com/user-attachments/assets/f7b5c54c-f493-4c79-8782-b4fc9c560528" />
+
+<img width="1167" height="60" alt="image" src="https://github.com/user-attachments/assets/0dcfa875-b8d4-48f4-9d5c-ea50e58b0b18" />
+
+<img width="1313" height="912" alt="image" src="https://github.com/user-attachments/assets/3ab63ff4-ec0d-4696-a15f-480758180ff0" />
+
+
+
+
+
+
+
+
+
+
